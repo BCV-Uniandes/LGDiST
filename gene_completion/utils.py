@@ -105,8 +105,8 @@ def decode(imputation, model_decoder, decode_as_matrix=False):
 
 def inference_function(data, model, diffusion_steps, device, args, model_autoencoder, wandb_logger, process = "val"):
     # To avoid circular imports
-    from model_stDiff.stDiff_scheduler import NoiseScheduler
-    from model_stDiff.sample import sample_stDiff
+    from model.scheduler import NoiseScheduler
+    from model.sample import sample_stDiff
     """
     Function designed to do inference for validation and test steps.
     Params:
