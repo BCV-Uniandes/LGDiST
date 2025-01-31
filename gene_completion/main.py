@@ -82,6 +82,7 @@ def main():
   # Load the best model after training
   model.load_state_dict(torch.load(best_model_path))
 
+  # Test in all available splits
   if args.test:
     test_metrics, test_imputation_data = inference_function(
       data=spared_data,
@@ -91,10 +92,34 @@ def main():
       args=args,
       model_autoencoder=autoencoder,
       wandb_logger=wandb,
-      process="test"
+      process="train"
       )
-    
-    wandb.log({"test_MSE": test_metrics["MSE"], "test_PCC": test_metrics["PCC-Gene"]})
+    wandb.log({"test_MSE_Train": test_metrics["MSE"], "test_PCC_Train": test_metrics["PCC-Gene"]})
+
+    test_metrics, test_imputation_data = inference_function(
+      data=spared_data,
+      model=model,
+      diffusion_steps=args.sample_diffusion_steps,
+      device=device,
+      args=args,
+      model_autoencoder=autoencoder,
+      wandb_logger=wandb,
+      process="val"
+      )
+    wandb.log({"test_MSE_Val": test_metrics["MSE"], "test_PCC_Val": test_metrics["PCC-Gene"]})
+
+    if spared_data.test_data_available:
+      test_metrics, test_imputation_data = inference_function(
+        data=spared_data,
+        model=model,
+        diffusion_steps=args.sample_diffusion_steps,
+        device=device,
+        args=args,
+        model_autoencoder=autoencoder,
+        wandb_logger=wandb,
+        process="test"
+        )
+      wandb.log({"test_MSE_Test": test_metrics["MSE"], "test_PCC_test": test_metrics["PCC-Gene"]})
 
 
 if __name__ == "__main__":

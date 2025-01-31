@@ -31,7 +31,6 @@ def get_main_parser():
     parser.add_argument('--seed',                           type=int,               default=1202,                            help='Seed to control initialization')
     parser.add_argument('--train',                          type=str2bool,          default=True,                            help='Train model.')
     parser.add_argument('--test',                           type=str2bool,          default=True,                            help='Test model.')
-    parser.add_argument('--test_ckpts_path',                type=str,               default='',                              help='Path to checkpoints to be testing.')
     parser.add_argument('--normalized_data',                type=str2bool,          default=False,                           help='Whether or not to work with normalized expression matrix.')
     parser.add_argument('--lr',                             type=float,             default=0.0001,                          help='lr to train DiT.')
     parser.add_argument('--batch_size',                     type=int,               default=128,                             help='Batch size used to train the diffusion model.')
