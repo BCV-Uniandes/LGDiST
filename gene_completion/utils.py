@@ -21,6 +21,7 @@ def get_main_parser():
     parser.add_argument('--noise_fraction',                 type=float,             default=1,                               help='Fraction of missing values/noise within the gene-expression data. If 1, it is an extreme imputation context.')
     parser.add_argument('--autoencoder_ckpts_path',         type=str,               default='/home/pcardenasg/autoencoders/ST/results/villacampa_lung_organoid/2025-01-21-02-52-56/epoch=498-step=6986.ckpt',            help='Path to trained checkpoints of AE corresponding to the dataset used.')
     parser.add_argument('--decode_as_matrix',               type=str2bool,          default=False,                           help='Whether or not the decoder receives 2D inputs.')
+    parser.add_argument('--full_inference',                 type=str2bool,          default=False,                           help='Whether or not to prepare a dataloader with all three data splits to perform inference in complete dataset.')
     # Model parameters #######################################################################################################################################################################
     parser.add_argument('--dit_hidden_size',                type=int,               default=1024,                            help='')
     parser.add_argument('--dit_depth',                      type=int,               default=12,                              help='')
@@ -135,10 +136,14 @@ def inference_function(data, model, diffusion_steps, device, args, model_autoenc
         dataloader = data.val_dataloader()
         min_norm, max_norm = data.val_data.min_val, data.val_data.max_val
         c_t_log1p_data = torch.tensor(data.spared_val.layers["c_t_log1p"])
-    else: # process is "test"
+    elif process == "test":
         dataloader = data.test_dataloader()
         min_norm, max_norm = data.test_data.min_val, data.test_data.max_val
         c_t_log1p_data = torch.tensor(data.spared_test.layers["c_t_log1p"])
+    else: # predict on all data
+        dataloader = data.all_dataloader()
+        min_norm, max_norm = data.all_data.min_val, data.all_data.max_val
+        c_t_log1p_data = torch.tensor(data.full_adata.layers["c_t_log1p"])
 
     # Get all ground truths
     ground_truth = []
@@ -206,4 +211,4 @@ def inference_function(data, model, diffusion_steps, device, args, model_autoenc
     print("MSE final sobre log1p: ", mse_final.item())
     metrics_dict = get_metrics(c_t_log1p_data, imputation_tensor, mask_boolean) 
     
-    return metrics_dict, imputation_tensor
+    return metrics_dict, imputation_tensor, mask_boolean

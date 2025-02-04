@@ -200,6 +200,7 @@ class SpaREDData():
         self.train_data = stLDMDataset(self.args, self.spared_train, "train", self.spared_genes_array, self.autoencoder)
         self.val_data = stLDMDataset(self.args, self.spared_val, "val", self.spared_genes_array, self.autoencoder)
         self.test_data = stLDMDataset(self.args, self.spared_test, "test", self.spared_genes_array, self.autoencoder)
+        self.all_data = stLDMDataset(self.args, self.full_adata, "all", self.spared_genes_array, self.autoencoder)
 
     def load_data(self):
         self.adata_path = f"../datasets/1024/{self.dataset_name}_1024.h5ad"
@@ -266,6 +267,9 @@ class SpaREDData():
 
     def test_dataloader(self):
         return DataLoader(self.test_data, batch_size=self.batch_size, shuffle=False, drop_last=False) #, num_workers=self.num_workers)
+    
+    def all_dataloader(self):
+        return DataLoader(self.all_data, batch_size=self.batch_size, shuffle=False, drop_last=False) #, num_workers=self.num_workers)
 
 
 if __name__ == "__main__":
@@ -294,23 +298,4 @@ if __name__ == "__main__":
     spared_data = SpaREDData(args, autoencoder)
     AA = next(iter(spared_data.train_dataloader()))
     print("finish")
-
-
-# GET ITEM ORIGINAL
-'''def __getitem__(self, idx):
-        """
-        An item returns a dictionary with the following keys and values:
-            - 'spot_id': string that corresponds to the id name of the main spot in the current sample.
-            - 'exp_matrix': expression matrix with values from adata.layer[pred_layer]. Not encoded, nor normalized.
-            - 'exp_mask': bool matrix with the values from adata.layer[pred_layer], as well as False in the columns of genes that aren't part of SpaRED.
-            - 'encoded_exp_matrix': same as "exp_matrix" but encoded and then normalized with the min and max values of whole data split.
-            - 'condition_matrix': same as "encoded_exp_matrix" but with 0 in the hidden values (the row/column of the main spot).
-            - 'condition_mask': bool matrix with False in the values that were changed to 0 for "condition_matrix" (the row/column of the main spot).
-        """
-        item = self.neighborhoods[str(idx)]
-        # Add noise to encoded neighborhood data
-        encoded_data = item["encoded_exp_matrix"].clone()
-        item["condition_matrix"], item["condition_mask"] = self.add_noise_to_neighborhoods(encoded_data)
-        
-        return item'''
 

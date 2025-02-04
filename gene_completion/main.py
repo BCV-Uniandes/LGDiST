@@ -78,13 +78,12 @@ def main():
   else: 
     best_model_path = args.dit_ckpts_path
     
-  # best_model_path = "/home/pcardenasg/ST_Diffusion/stDiff_Spared/Experiments/2025-01-28-20-01-12/villacampa_lung_organoid_12_1024_0.0001_noise.pt"
   # Load the best model after training
   model.load_state_dict(torch.load(best_model_path))
 
   # Test in all available splits
   if args.test:
-    test_metrics, test_imputation_data = inference_function(
+    train_metrics, test_imputation_data, _ = inference_function(
       data=spared_data,
       model=model,
       diffusion_steps=args.sample_diffusion_steps,
@@ -94,9 +93,9 @@ def main():
       wandb_logger=wandb,
       process="train"
       )
-    wandb.log({"test_MSE_Train": test_metrics["MSE"], "test_PCC_Train": test_metrics["PCC-Gene"]})
+    wandb.log({"test_MSE_Train": train_metrics["MSE"], "test_PCC_Train": train_metrics["PCC-Gene"]})
 
-    test_metrics, test_imputation_data = inference_function(
+    val_metrics, test_imputation_data, _ = inference_function(
       data=spared_data,
       model=model,
       diffusion_steps=args.sample_diffusion_steps,
@@ -106,10 +105,10 @@ def main():
       wandb_logger=wandb,
       process="val"
       )
-    wandb.log({"test_MSE_Val": test_metrics["MSE"], "test_PCC_Val": test_metrics["PCC-Gene"]})
+    wandb.log({"test_MSE_Val": val_metrics["MSE"], "test_PCC_Val": val_metrics["PCC-Gene"]})
 
     if spared_data.test_data_available:
-      test_metrics, test_imputation_data = inference_function(
+      test_metrics, test_imputation_data, _ = inference_function(
         data=spared_data,
         model=model,
         diffusion_steps=args.sample_diffusion_steps,
@@ -119,8 +118,20 @@ def main():
         wandb_logger=wandb,
         process="test"
         )
-      wandb.log({"test_MSE_Test": test_metrics["MSE"], "test_PCC_test": test_metrics["PCC-Gene"]})
+      wandb.log({"test_MSE_Test": test_metrics["MSE"], "test_PCC_Test": test_metrics["PCC-Gene"]})
 
+  if args.full_inference:
+      full_metrics, full_imputation_data, eval_mask = inference_function(
+        data=spared_data,
+        model=model,
+        diffusion_steps=args.sample_diffusion_steps,
+        device=device,
+        args=args,
+        model_autoencoder=autoencoder,
+        wandb_logger=wandb,
+        process="all"
+        )
+      wandb.log({"test_MSE_all": full_metrics["MSE"], "test_PCC_all": full_metrics["PCC-Gene"]})
 
 if __name__ == "__main__":
 
