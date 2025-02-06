@@ -193,6 +193,8 @@ class SpaREDData():
         self.load_data()
         # Sort genes in adatas
         self.sort_adatas()
+        # Get indexes/location of important genes in 1024-data after sorting
+        self.gene_weights = torch.tensor(np.isin(self.full_adata.var['gene_ids'].unique(), self.spared_genes_array))
         # Get average values for 1024-genes adata
         self.average_vals = torch.tensor(self.full_adata.var[f"c_t_log1p_avg_exp"]).unsqueeze(0)
         # Set split data and create data modules
