@@ -24,6 +24,10 @@ def get_main_parser():
     parser.add_argument('--autoencoder_ckpts_path',         type=str,               default='/home/pcardenasg/autoencoders/ST/results/villacampa_lung_organoid/2025-01-21-02-52-56/epoch=498-step=6986.ckpt',            help='Path to trained checkpoints of AE corresponding to the dataset used.')
     parser.add_argument('--decode_as_matrix',               type=str2bool,          default=False,                           help='Whether or not the decoder receives 2D inputs.')
     parser.add_argument('--full_inference',                 type=str2bool,          default=False,                           help='Whether or not to prepare a dataloader with all three data splits to perform inference in complete dataset.')
+    parser.add_argument('--partial',                        type=str2bool,          default=False,                           help='Set to True to perform partial completion during inference.')
+    parser.add_argument('--masking_method',                 type=str,               default='mask_prob',                     help='Available options: mask_prob, prob_median, scale_factor.')
+    parser.add_argument('--mask_prob',                      type=float,             default=0.3,                             help='')
+    parser.add_argument('--scale_factor',                   type=float,             default=0.8,                             help='')
     # Model parameters #######################################################################################################################################################################
     parser.add_argument('--dit_hidden_size',                type=int,               default=1024,                            help='')
     parser.add_argument('--dit_depth',                      type=int,               default=12,                              help='')
@@ -211,9 +215,22 @@ def inference_function(data, model, diffusion_steps, device, args, model_autoenc
     
     #matrix input
     mse_final = F.mse_loss(imputation_tensor[mask_boolean], c_t_log1p_data[mask_boolean])
-    print("MSE final sobre log1p: ", mse_final.item())
+    print("MSE final sobre log1p - extreme completion: ", mse_final.item())
     metrics_dict = get_metrics(c_t_log1p_data, imputation_tensor, mask_boolean) 
     
+    # Perform partial-completion test if needed
+    if args.partial:
+        original_adata = data.original_full_adata[data.original_full_adata.obs["split"]==process]
+        # Get the columns that correspond to the original SpaRED genes
+        original_genes = mask_boolean.sum(dim=0)!=0 
+        assert torch.allclose(data.gene_weights, original_genes)
+        # Keep only the gt and preds for SpaRED genes
+        original_exp = c_t_log1p_data[:,original_genes]
+        imputation_tensor = imputation_tensor[:,original_genes]
+        # Retrieve the random mask from original adata
+        mask_boolean = torch.tensor(original_adata.layers["random_mask"]) 
+        metrics_dict = get_metrics(original_exp, imputation_tensor, mask_boolean)
+
     return metrics_dict, imputation_tensor, mask_boolean
 
 def get_deltas(adata: ad.AnnData, from_layer: str, to_layer: str) -> ad.AnnData:
@@ -250,4 +267,78 @@ def get_deltas(adata: ad.AnnData, from_layer: str, to_layer: str) -> ad.AnnData:
     adata.var[f'{from_layer}_avg_exp'] = scaler.mean_
 
     # Return the updated AnnData object
+    return adata
+
+def get_mask_prob_tensor(masking_method, adata, mask_prob=0.3, scale_factor=0.8):
+    """
+    This function calculates the probability of masking each gene present in the expression matrix. 
+    Within this function, there are three different methods for calculating the masking probability, 
+    which are differentiated by the 'masking_method' parameter. 
+    The return value is a vector of length equal to the number of genes, where each position represents
+    the masking probability of that gene.
+    
+    Args:
+        masking_method (str): parameter used to differenciate the method for calculating the probabilities.
+        adata (ad.adata): the adata containing the full dataset.
+        mask_prob (float): masking probability for all the genes. Only used when 'masking_method = mask_prob' 
+        scale_factor (float): maximum probability of masking a gene if masking_method == 'scale_factor'
+    Return:
+        prob_tensor (torch.Tensor): vector with the masking probability of each gene for testing. Shape: n_genes  
+    """
+
+    # Convert glob_exp_frac to tensor
+    glob_exp_frac = torch.tensor(adata.var.glob_exp_frac.values, dtype=torch.float32)
+    # Calculate the probability of median imputation
+    prob_median = 1 - glob_exp_frac
+
+    if masking_method == "prob_median":
+        # Calculate masking probability depending on the prob median
+        # (the higher the probability of being replaced with the median, the higher the probability of being masked).
+        prob_tensor = prob_median/(1-prob_median)
+
+    elif masking_method == "mask_prob":
+        # Calculate masking probability according to mask_prob parameter
+        # (Mask everything with the same probability)
+        prob_tensor = mask_prob/(1-prob_median)
+
+    elif masking_method == "scale_factor":
+        # Calculate masking probability depending on the prob median scaled by a factor
+        # (Multiply by a factor the probability of being replaced with median to decrease the masking probability).
+        prob_tensor = prob_median/(1-prob_median)
+        prob_tensor = prob_tensor*scale_factor
+        
+    # If probability is more than 1, set it to 1
+    prob_tensor[prob_tensor>1] = 1
+
+    return prob_tensor
+
+def mask_exp_matrix(adata: ad.AnnData, pred_layer: str, mask_prob_tensor: torch.Tensor, device):
+    """
+    This function recieves an adata and masks random values of the pred_layer based on the masking probability of each gene, then saves the masked matrix in the corresponding layer. 
+    It also saves the final random_mask for metrics computation. True means the values that are real in the dataset and have been masked for the imputation model development.
+    
+    Args:
+        adata (ad.AnnData): adata of the data split that will be masked and imputed.
+        pred_layer (str): indicates the adata.layer with the gene expressions that should be masked and later reconstructed. Shape: spots_in_adata, n_genes
+        mask_prob_tensor (torch.Tensor):  tensor with the masking probability of each gene for testing. Shape: n_genes
+    
+    Return:
+        adata (ad.AnnData): adata of the data split with the gene expression matrix already masked and the corresponding random_mask in adata.layers.
+    """
+
+    # Extract the expression matrix
+    expression_mtx = torch.tensor(adata.layers[pred_layer])
+    # Calculate the mask based on probability tensor
+    random_mask = torch.rand(expression_mtx.shape).to(device) < mask_prob_tensor.to(device)
+    median_imp_mask = torch.tensor(adata.layers['mask']).to(device)
+    # False depicts the values that were not measured in real life and are artificially completed in adata.
+    # Combine random mask with the median imputation mask
+    random_mask = random_mask.to(device) & median_imp_mask
+    # Mask chosen values - In random_mask, True represents the values that are synthetically masked and that will be predicted
+    expression_mtx[random_mask] = 0
+    # Save masked expression matrix in the data_split annData
+    adata.layers['masked_expression_matrix'] = np.asarray(expression_mtx.cpu())
+    #Save final mask for metric computation
+    adata.layers['random_mask'] = np.asarray(random_mask.cpu())
+
     return adata

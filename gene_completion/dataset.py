@@ -197,6 +197,23 @@ class SpaREDData():
         self.gene_weights = torch.tensor(np.isin(self.full_adata.var['gene_ids'].unique(), self.spared_genes_array))
         # Get average values for 1024-genes adata
         self.average_vals = torch.tensor(self.full_adata.var[f"c_t_log1p_avg_exp"]).unsqueeze(0)
+        if args.partial:
+            # Get tensor with each gene's probability of being masked
+            self.mask_prob_tensor = get_mask_prob_tensor(
+                masking_method=args.masking_method, 
+                adata=self.original_full_adata,
+                mask_prob=args.mask_prob,
+                scale_factor=args.scale_factor
+            )
+            # Create synthetic masking and save it in SpaRED/original adata of 128 or 32 genes
+            # In the new layer "random_mask", True represents the values that are synthetically masked and that will be predicted
+            self.original_full_adata = mask_exp_matrix(
+                adata=self.original_full_adata,
+                pred_layer=args.pred_layer,
+                mask_prob_tensor=self.mask_prob_tensor,
+                device="cuda"
+            )
+        
         # Set split data and create data modules
         self.setup()
         self.train_data = stLDMDataset(self.args, self.spared_train, "train", self.spared_genes_array, self.autoencoder)
