@@ -46,7 +46,6 @@ class Transformer(pl.LightningModule):
     
     def decoder(self, encoder_output):
         # (batch, seq_len, d_model)
-        #breakpoint()
         x = self.Decoder(encoder_output)
         return x
         
@@ -80,12 +79,6 @@ class Transformer(pl.LightningModule):
         torch.Tensor
             Weighted reconstruction loss.
         """
-        # Central spot reconstruction (first row in each sequence)
-        #weights_test = self.weights.unsqueeze(0).repeat(x.size(0), x.size(1), 1)
-        #weights_test = self.weights.unsqueeze(0).repeat(x.size(0),  1)
-        #important_mask = (weights_test == 1).bool()
-        #auxiliary_mask = (weights_test == 0).bool()
-        #breakpoint()
         mask = mask[:,0,:]
         x = x[:,0,:]
         important_mask = (mask == 1).bool()
@@ -96,35 +89,21 @@ class Transformer(pl.LightningModule):
 
         # Weighted total loss
         total_loss = self.alpha * important_loss + (1 - self.alpha) * auxiliary_loss 
-        #total_loss = F.mse_loss(x[important_mask], x_hat.flatten())
-        #total_loss = F.mse_loss(x[important_mask], x_hat[important_mask])
-        
+
         if torch.isnan(total_loss):
             print("Loss is NaN! Inspect inputs, model outputs, or weights.")
             breakpoint()
-            
-        #self.log("important_loss", important_loss, prog_bar=True, logger=True)
-        #self.log("auxiliary_loss", auxiliary_loss, prog_bar=True, logger=True)
+
         self.log("total_loss", total_loss, prog_bar=True, logger=True)
 
         return total_loss
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(), lr=self.lr, weight_decay=1e-4)
-        # Using a scheduler is optional but can be helpful.
-        # The scheduler reduces the LR if the validation performance hasn't improved for the last N epochs
-        #scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode="min", factor=0.2, patience=10, min_lr=1e-10)
-        #scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=3000, gamma=0.1)
-        #return {"optimizer": optimizer, "lr_scheduler": scheduler, "monitor": "val_loss"}
         return {"optimizer": optimizer, "monitor": "val_loss"}
 
     def training_step(self, batch, batch_idx):
         x = batch[0].float()
-        # Randomly decide to add noise
-        #if random.random() < 0.5:  # 50% chance to add noise
-        #    noisy_x = add_noise(x, noise_factor=0.1)
-        #else:
-        #    noisy_x = x  # Use clean data
         noisy_x = x
         batch_size = x.shape[0]
         mask = batch[1]
@@ -135,14 +114,7 @@ class Transformer(pl.LightningModule):
         self.log("learning_rate", current_lr, prog_bar=True, logger=True, on_step=True, on_epoch=True)
         self.log("train_loss", loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
         return loss
-    """   
-    def on_after_backward(self):
-        # Aquí inspeccionas los gradientes después de calcular backward
-        print("=== Inspecting Gradients ===")
-        for name, param in self.named_parameters():
-            if param.grad is not None:
-                print(f"{name}: grad max={param.grad.abs().max().item()}, grad min={param.grad.abs().min().item()}")
-    """
+
     def validation_step(self, batch, batch_idx):
         x = batch[0].float()
         batch_size = x.shape[0]

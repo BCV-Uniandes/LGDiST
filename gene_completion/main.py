@@ -1,4 +1,4 @@
-from Transformer_simple import Transformer
+from autoencoder.Transformer_simple import Transformer
 from model.model_2D import DiT_stDiff
 from dataset import SpaREDData
 from train import train_stDiff

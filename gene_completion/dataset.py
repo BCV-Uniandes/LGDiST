@@ -1,4 +1,4 @@
-from Transformer_simple import Transformer
+from autoencoder.Transformer_simple import Transformer
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import anndata as ad
