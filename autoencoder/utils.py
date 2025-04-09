@@ -23,24 +23,24 @@ str2h_list = lambda x: [str2intlist(i) for i in x.split('//')[1:]]
 def get_main_parser():
     parser = argparse.ArgumentParser(description='Code for Diffusion Imputation Model')
     # Dataset parameters #####################################################################################################################################################################
-    parser.add_argument('--dataset', type=str, default='villacampa_lung_organoid',  help='Dataset to use.')
-    parser.add_argument('--prediction_layer',  type=str,  default='c_t_deltas', help='The prediction layer from the dataset to use.')
-    parser.add_argument("--normalization_type",                        type=str,           default="1-1",                                help='If the normalization is done in range [-1, 1] (-1-1) or is done in range [0, 1] (0-1) or is none')
-    parser.add_argument("--normalize_encoder",                        type=str,           default="none",                                help='If the normalization is done in range [-1, 1] (-1-1) or is done in range [0, 1] (0-1) or is none')
+    parser.add_argument('--dataset',                type=str,         default='villacampa_lung_organoid',           help='Dataset to use.')
+    parser.add_argument('--prediction_layer',       type=str,         default='c_t_deltas',                         help='The prediction layer from the dataset to use.')
+    parser.add_argument("--normalization_type",     type=str,         default="1-1",                                help='If the normalization is done in range [-1, 1] (-1-1) or is done in range [0, 1] (0-1) or is none')
+    parser.add_argument("--normalize_encoder",      type=str,         default="none",                               help='If the normalization is done in range [-1, 1] (-1-1) or is done in range [0, 1] (0-1) or is none')
     # Train parameters #######################################################################################################################################################################
-    parser.add_argument('--lr',type=float,default=0.000001,help='lr to use')
-    parser.add_argument('--num_epochs', type=int, default=5000, help='Number of training epochs')
-    parser.add_argument('--batch_size', type=int, default=128, help='The batch size to train model')
+    parser.add_argument('--lr',                     type=float,       default=0.000001,                             help='lr to use')
+    parser.add_argument('--num_epochs',             type=int,         default=5000,                                 help='Number of training epochs')
+    parser.add_argument('--batch_size',             type=int,         default=128,                                  help='The batch size to train model')
     # Autoencoder parameters #######################################################################################################################################################################
-    parser.add_argument('--num_layers', type=int, default=2,  help='Number of layers in the autoencoder')
-    parser.add_argument('--num_heads',  type=int,  default=2, help='Number of heads in the transformer encoder')
-    parser.add_argument("--embedding_dim", type=int, default=256, help='Embedding dimensions in the eutoencoder')
-    parser.add_argument("--feeforward_layer", type=int, default=512, help='Feedforward dimension in the transformer encoder')
-    parser.add_argument('--input_dim',  type=int,  default=1024, help='Input dimension of the autoencoder')
-    parser.add_argument("--latent_dim", type=int, default=128, help='Latent dimension in the autoencoder')
-    parser.add_argument("--output_dim", type=int, default=1024, help='Ouput dimension of the autoencoder')
+    parser.add_argument('--num_layers',             type=int,         default=2,                                    help='Number of layers in the autoencoder')
+    parser.add_argument('--num_heads',              type=int,         default=2,                                    help='Number of heads in the transformer encoder')
+    parser.add_argument("--embedding_dim",          type=int,         default=256,                                  help='Embedding dimensions in the eutoencoder')
+    parser.add_argument("--feeforward_layer",       type=int,         default=512,                                  help='Feedforward dimension in the transformer encoder')
+    parser.add_argument('--input_dim',              type=int,         default=1024,                                 help='Input dimension of the autoencoder')
+    parser.add_argument("--latent_dim",             type=int,         default=128,                                  help='Latent dimension in the autoencoder')
+    parser.add_argument("--output_dim",             type=int,         default=1024,                                 help='Ouput dimension of the autoencoder')
     # Data masking parameters ################################################################################################################################################################
-    parser.add_argument('--num_hops',                       type=int,           default=1,                          help="Amount of graph hops to consider for context during imputation")
+    parser.add_argument('--num_hops',               type=int,         default=1,                                    help="Amount of graph hops to consider for context during imputation")
     return parser
 
 def normalize_to_minus_one_to_one(X, X_max, X_min):
