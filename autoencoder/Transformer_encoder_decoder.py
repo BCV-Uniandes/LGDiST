@@ -5,7 +5,7 @@ import math
 
 
 class TransformerEncoder(nn.Module):
-    def __init__(self, input_dim, embedding_dim, latent_dim, num_heads, num_layers, dropout=0.1):
+    def __init__(self, input_dim, embedding_dim, feedforward_dim, latent_dim, num_heads, num_layers, dropout=0.1):
         super().__init__()
         self.encoder_projection = nn.Sequential(
             nn.Linear(input_dim, embedding_dim),
@@ -17,7 +17,7 @@ class TransformerEncoder(nn.Module):
         self.encoder_layer = nn.TransformerEncoderLayer(
             d_model=embedding_dim,
             nhead=num_heads,
-            dim_feedforward= 2 * embedding_dim,
+            dim_feedforward= feedforward_dim,
             dropout=dropout,
         )
         
@@ -35,14 +35,12 @@ class TransformerEncoder(nn.Module):
         #breakpoint()
         x = self.encoder_projection(x) # Shape: [Batch, 7, Embedding Dim]
         x = self.positional_encoding(x)
-        #x = x + self.positional_encoding
         
         x = x.permute(1, 0, 2)
         x = self.transformer(x)  # Shape: [Batch, 7, Embedding Dim]
         x = x.permute(1, 0, 2)
         
         x = self.to_latent(x)  # Shape: [Batch, 7, Latent Dim]
-        
         return x
 
 class TransformerDecoder(nn.Module):
@@ -57,14 +55,8 @@ class TransformerDecoder(nn.Module):
         )
 
     def forward(self, z):
-        ##breakpoint()##
-        # Input shape: [Batch, 7, 128]
-        #batch_size, num_spots, _ = z.size()
-        #z = z.view(-1, z.size(-1))  # Flatten to [Batch * 7, Latent Dim]
         z = self.decoder(z)  # Shape: [Batch * 7, Output Dim]
         return z
-        #return z.view(batch_size, num_spots, -1)  # Reshape back to [Batch, 7, Output Dim]
-
 
 class PositionalEncoding(nn.Module):
     def __init__(self, embedding_dim, max_len=5000):

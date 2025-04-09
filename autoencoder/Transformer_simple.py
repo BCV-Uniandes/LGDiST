@@ -13,6 +13,7 @@ class Transformer(pl.LightningModule):
                  latent_dim: int, 
                  output_dim: int,
                  embedding_dim: int,
+                 feedforward_dim: int,
                  num_layers: int,
                  num_heads: int,
                  lr=1e-5,
@@ -23,6 +24,7 @@ class Transformer(pl.LightningModule):
         
         self.Encoder = TransformerEncoder(input_dim=input_dim, 
                                embedding_dim=embedding_dim, 
+                               feedforward_dim=feedforward_dim,
                                latent_dim=latent_dim, 
                                num_heads=num_heads, 
                                num_layers=num_layers, 

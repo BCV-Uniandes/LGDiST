@@ -40,8 +40,23 @@ def get_main_parser():
     parser.add_argument("--latent_dim",             type=int,         default=128,                                  help='Latent dimension in the autoencoder')
     parser.add_argument("--output_dim",             type=int,         default=1024,                                 help='Ouput dimension of the autoencoder')
     # Data masking parameters ################################################################################################################################################################
-    parser.add_argument('--num_hops',               type=int,         default=1,                                    help="Amount of graph hops to consider for context during imputation")
+    parser.add_argument('--num_hops',                       type=int,           default=1,                          help="Amount of graph hops to consider for context during imputation")
+    parser.add_argument('--seed',                           type=int,               default=1202,                            help='Seed to control initialization')
     return parser
+
+def seed_everything(seed: int):
+    import random, os
+    import numpy as np
+    import torch
+    
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = True   
 
 def normalize_to_minus_one_to_one(X, X_max, X_min):
     # Apply the normalization formula to -1-1
