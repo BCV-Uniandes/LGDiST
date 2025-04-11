@@ -1,8 +1,0 @@
-wandb_version: 1
-
-dataset:
-  value: abalo_human_squamous_cell_carcinoma
-embedding_dim:
-  value: 256
-lr:
-  value: 1.0e-06
