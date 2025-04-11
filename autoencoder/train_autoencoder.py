@@ -24,14 +24,16 @@ def main():
     args = parser.parse_args()
     args_dict = vars(args) #Not uses, maybe later usage
 
-    seed_everything(args.seed) #53942
+    seed_everything(args.seed) 
+    feedforward_dim = args.embedding_dim*2
 
     # Configurar el logger de wandb
     wandb.login()
     exp_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     wandb.init(project="autoencoder_project_2", entity="spared_v2", name=exp_name, dir="/home/dvegaa/LDiST/autoencoder")
     wandb_logger = WandbLogger(log_model="best")
-    wandb.log({"args": vars(args)})
+    wandb.log({"args": vars(args),
+               "feedforward_dim": feedforward_dim})
 
     adata_128 = ad.read_h5ad(f"/media/SSD0/pcardenasg2/c_dif_layers/datasets/original/{args.dataset}.h5ad")
     adata = ad.read_h5ad(f"/media/SSD0/pcardenasg2/c_dif_layers/datasets/1024/{args.dataset}_1024.h5ad")
@@ -103,7 +105,7 @@ def main():
                         latent_dim=args.latent_dim, 
                         output_dim=args.output_dim,
                         embedding_dim=args.embedding_dim,
-                        feedforward_dim=args.feedforward_dim,
+                        feedforward_dim=feedforward_dim,
                         num_layers=args.num_layers,
                         num_heads=args.num_heads,
                         lr=args.lr,

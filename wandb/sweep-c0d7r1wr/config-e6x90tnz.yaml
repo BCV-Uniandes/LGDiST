@@ -1,0 +1,8 @@
+wandb_version: 1
+
+dataset:
+  value: villacampa_mouse_brain
+embedding_dim:
+  value: 256
+lr:
+  value: 1.0e-07
