@@ -60,8 +60,10 @@ class NoiseScheduler():
 
         # required for self.add_noise
         self.sqrt_alphas_cumprod = self.alphas_cumprod ** 0.5
-        
         self.sqrt_one_minus_alphas_cumprod = (1 - self.alphas_cumprod) ** 0.5
+
+        self.sqrt_alphas_cumprod = self.sqrt_alphas_cumprod.to("cuda")
+        self.sqrt_one_minus_alphas_cumprod = self.sqrt_one_minus_alphas_cumprod.to("cuda")
 
         # required for reconstruct_x0
         self.sqrt_inv_alphas_cumprod = torch.sqrt(1 / self.alphas_cumprod)

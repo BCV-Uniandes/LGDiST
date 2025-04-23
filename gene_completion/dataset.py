@@ -1,11 +1,11 @@
-from autoencoder.Transformer_simple import Transformer
+from Transformer_simple import Transformer
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import anndata as ad
 from utils import *
 import numpy as np
 import torch
-import copy
+torch.set_num_threads(1)
 
 parser = get_main_parser()
 args = parser.parse_args()
@@ -196,7 +196,8 @@ class SpaREDData():
         # Get indexes/location of important genes in 1024-data after sorting
         self.gene_weights = torch.tensor(np.isin(self.full_adata.var['gene_ids'].unique(), self.spared_genes_array))
         # Get average values for 1024-genes adata
-        self.average_vals = torch.tensor(self.full_adata.var[f"c_t_log1p_avg_exp"]).unsqueeze(0)
+        avg_layer = f'{"_".join(self.prediction_layer.split("_")[:-1])}_log1p_avg_exp'
+        self.average_vals = torch.tensor(self.full_adata.var[avg_layer]).unsqueeze(0)
         if args.partial:
             # Get tensor with each gene's probability of being masked
             self.mask_prob_tensor = get_mask_prob_tensor(
@@ -219,7 +220,8 @@ class SpaREDData():
         self.train_data = stLDMDataset(self.args, self.spared_train, "train", self.spared_genes_array, self.autoencoder)
         self.val_data = stLDMDataset(self.args, self.spared_val, "val", self.spared_genes_array, self.autoencoder)
         self.test_data = stLDMDataset(self.args, self.spared_test, "test", self.spared_genes_array, self.autoencoder)
-        self.all_data = stLDMDataset(self.args, self.full_adata, "all", self.spared_genes_array, self.autoencoder)
+        if args.full_inference:
+            self.all_data = stLDMDataset(self.args, self.full_adata, "all", self.spared_genes_array, self.autoencoder)
 
     def load_data(self):
         self.adata_path = f"../datasets/1024/{self.dataset_name}_1024.h5ad"

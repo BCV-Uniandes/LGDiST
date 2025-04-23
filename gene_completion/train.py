@@ -77,7 +77,7 @@ def train_stDiff(model,
             timesteps = torch.randint(1, args.train_diffusion_steps, (x.shape[0],)).long()
             x_t = noise_scheduler.add_noise(x,
                                             noise,
-                                            timesteps=timesteps.cpu())
+                                            timesteps=timesteps.to(device))
             
             mask = torch.tensor(mask).to(device)
             
