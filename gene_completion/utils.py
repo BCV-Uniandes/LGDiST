@@ -17,7 +17,7 @@ def get_main_parser():
     parser = argparse.ArgumentParser(description='Code for expression prediction using contrastive learning implementation.')
     # Dataset parameters #####################################################################################################################################################################
     parser.add_argument('--dataset',                        type=str,               default='villacampa_lung_organoid',      help='Dataset to use.')
-    parser.add_argument('--pred_layer',                     type=str,               default='c_t_deltas',                    help='SpaRED prediction layer to use.')
+    parser.add_argument('--pred_layer',                     type=str,               default='c_d_deltas',                    help='SpaRED prediction layer to use.')
     parser.add_argument('--num_neighs',                     type=int,               default=6,                               help='Amount of neighbors considered to build spot neighborhoods. Must be the same as the ones used to train the autoencoder.')
     parser.add_argument('--normalize_input',                type=str2bool,          default=True,                            help='Whether or not to normalize the DiT input data (encoded matrix) between -1 and 1 when preparing dataloader.')
     parser.add_argument('--noise_fraction',                 type=float,             default=1,                               help='Fraction of missing values/noise within the gene-expression data. If 1, it is an extreme imputation context.')
@@ -34,6 +34,10 @@ def get_main_parser():
     parser.add_argument('--num_heads',                      type=int,               default=16,                              help='')
     parser.add_argument("--concat_dim",                     type=int,               default=0,                               help='Which dimension used to concat the condition.')
     parser.add_argument('--dit_ckpts_path',                 type=str,               default='',                              help='Path to trained checkpoints of DiT corresponding to the dataset used. Optional.')
+    # AutoEncoder parameters #######################################################################################################################################################################
+    parser.add_argument('--ae_embedding_dim',               type=int,               default=512,                             help='')
+    parser.add_argument('--ae_num_heads',                   type=int,               default=1,                               help='')
+    parser.add_argument('--ae_num_layers',                  type=int,               default=4,                               help='')
     # Train parameters #######################################################################################################################################################################
     parser.add_argument('--seed',                           type=int,               default=1202,                            help='Seed to control initialization')
     parser.add_argument('--train',                          type=str2bool,          default=True,                            help='Train model.')
@@ -220,18 +224,21 @@ def inference_function(data, model, diffusion_steps, device, args, model_autoenc
     
     # Perform partial-completion test if needed
     if args.partial:
-        original_adata = data.original_full_adata[data.original_full_adata.obs["split"]==process]
+        if process != "all":
+            original_adata = data.original_full_adata[data.original_full_adata.obs["split"]==process]
+        else: 
+            original_adata = data.original_full_adata
         # Get the columns that correspond to the original SpaRED genes
         original_genes = mask_boolean.sum(dim=0)!=0 
         assert torch.allclose(data.gene_weights, original_genes)
         # Keep only the gt and preds for SpaRED genes
         original_exp = c_t_log1p_data[:,original_genes]
-        imputation_tensor = imputation_tensor[:,original_genes]
+        imputation_tensor_cut = imputation_tensor[:,original_genes]
         # Retrieve the random mask from original adata
-        mask_boolean = torch.tensor(original_adata.layers["random_mask"]) 
-        metrics_dict = get_metrics(original_exp, imputation_tensor, mask_boolean)
+        mask_boolean_cut = torch.tensor(original_adata.layers["random_mask"]) 
+        metrics_dict = get_metrics(original_exp, imputation_tensor_cut, mask_boolean_cut)
 
-    return metrics_dict, imputation_tensor, mask_boolean
+    return metrics_dict, imputation_tensor, mask_boolean, imputation_tensor_cut, mask_boolean_cut
 
 def get_deltas(adata: ad.AnnData, from_layer: str, to_layer: str) -> ad.AnnData:
     """

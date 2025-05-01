@@ -126,9 +126,9 @@ def train_stDiff(model,
             session.report({'loss': epoch_loss})
         
         # Run validation and save best model
-        if epoch % (args.num_epochs//10) == 0 and epoch != 0:
+        if (epoch % (args.num_epochs//10) == 0 and epoch != 0) or (epoch == t_epoch.total-1):
         #if epoch % 10 == 0 and epoch != 0:
-            metrics_dict, imputation_data, _ = inference_function(
+            metrics_dict, imputation_data, _, _, _ = inference_function(
                 data=data,
                 model=model,
                 #diffusion_steps=args.sample_diffusion_steps,
