@@ -6,4 +6,4 @@ gene_completion/model/__pycache__
 autoencoder/wandb
 autoencoder/__pycache__
 wandb
-autoencoder/wandb
+autoencoder/results

@@ -25,7 +25,6 @@ def get_main_parser():
     # Dataset parameters #####################################################################################################################################################################
     parser.add_argument('--dataset',                type=str,         default='villacampa_lung_organoid',           help='Dataset to use.')
     parser.add_argument('--prediction_layer',       type=str,         default='c_d_deltas',                         help='The prediction layer from the dataset to use.')
-    parser.add_argument("--normalization_type",     type=str,         default="1-1",                                help='If the normalization is done in range [-1, 1] (-1-1) or is done in range [0, 1] (0-1) or is none')
     parser.add_argument("--normalize_encoder",      type=str,         default="none",                               help='If the normalization is done in range [-1, 1] (-1-1) or is done in range [0, 1] (0-1) or is none')
     # Train parameters #######################################################################################################################################################################
     parser.add_argument('--lr',                     type=float,       default=0.000001,                             help='lr to use')

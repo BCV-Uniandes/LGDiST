@@ -1,16 +1,19 @@
-import pytorch_lightning as pl
-from torch.utils.data import DataLoader
-import torch
-from Transformer_encoder_decoder import *
-from Transformer_simple import Transformer
-from utils import *
-import wandb
-from pytorch_lightning.loggers import WandbLogger
-from datetime import datetime
-import torch.nn.functional as F
-import copy
 from transformer_dataloader import CombinedDataset
+from pytorch_lightning.loggers import WandbLogger
+from Transformer_simple import Transformer
+from Transformer_encoder_decoder import *
+from torch.utils.data import DataLoader
+import torch.nn.functional as F
+import pytorch_lightning as pl
+from datetime import datetime
 from tqdm import tqdm
+import anndata as ad
+from utils import *
+import numpy as np
+import torch
+import wandb
+import copy
+import os
 
 def main():
     if torch.cuda.is_available():
@@ -30,13 +33,12 @@ def main():
     # Configurar el logger de wandb
     wandb.login()
     exp_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    wandb.init(project="autoencoder_project_2", entity="spared_v2", name=exp_name, dir="/home/dvegaa/LDiST/autoencoder")
+    wandb.init(project="autoencoder_project_2", entity="spared_v2", name=exp_name, config=vars(args))
     wandb_logger = WandbLogger(log_model="best")
-    wandb.log({"args": vars(args),
-               "feedforward_dim": feedforward_dim})
+    wandb.log({"feedforward_dim": feedforward_dim})
 
-    adata_128 = ad.read_h5ad(f"/media/SSD0/pcardenasg2/c_dif_layers/datasets/original/{args.dataset}.h5ad")
-    adata = ad.read_h5ad(f"/media/SSD0/pcardenasg2/c_dif_layers/datasets/1024/{args.dataset}_1024.h5ad")
+    adata_128 = ad.read_h5ad(f"../datasets/original/{args.dataset}.h5ad")
+    adata = ad.read_h5ad(f"../datasets/1024/{args.dataset}_1024.h5ad")
 
     # Sort adatas 
     adata, adata_128 = sort_adatas(adata=adata, adata_128=adata_128)
@@ -177,10 +179,10 @@ def main():
     wandb.log({"mse":mse})
 
     # Save model
-    if not os.path.exists(os.path.join("/media/SSD4/dvegaa/autoencoder/c_d_deltas", f"{args.dataset}", exp_name)):
-        os.makedirs(os.path.join("/media/SSD4/dvegaa/autoencoder/c_d_deltas", f"{args.dataset}", exp_name))
+    if not os.path.exists(os.path.join("results", args.prediction_layer, args.dataset, exp_name)):
+        os.makedirs(os.path.join("results", args.prediction_layer, args.dataset, exp_name))
 
-    trainer.save_checkpoint(os.path.join("/media/SSD4/dvegaa/autoencoder/c_d_deltas", f"{args.dataset}", exp_name, "autoencoder_model.ckpt"))
+    trainer.save_checkpoint(os.path.join("results", args.prediction_layer, args.dataset, exp_name, "autoencoder_model.ckpt"))
 
 if __name__ == "__main__":
     main()
