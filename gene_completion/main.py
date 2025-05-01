@@ -1,4 +1,4 @@
-from autoencoder.Transformer_simple import Transformer
+from Transformer_simple import Transformer
 from model.model_2D import DiT_stDiff
 from dataset import SpaREDData
 from train import train_stDiff
@@ -26,26 +26,20 @@ def main():
     )
 
   # Define and create path to save results
-  save_path = os.path.join("results", args.dataset, exp_name)
-  os.makedirs(save_path, exist_ok=True)
+  save_path = os.path.join("results", args.pred_layer, args.dataset, exp_name)
+  if args.train:
+    os.makedirs(save_path, exist_ok=True)
 
   # Load trained autoencoder
-  if args.decode_as_matrix:
-    print("Using a Transformer-Transformer autoencoder for gene preprocessing")
-    autoencoder = AutoEncoder2D_Transformer(
-        input_shape=[7, 1024]
-        )
-  else: 
-    print("Using a Transformer-MLP autoencoder for gene preprocessing")
-    autoencoder = Transformer(
-      input_dim=1024, 
-      latent_dim=128, 
-      output_dim=1024,
-      embedding_dim=256,
-      num_layers=2,
-      num_heads=2,
-      lr=args.lr
-      )
+  print("Using a Transformer-MLP autoencoder for gene preprocessing")
+  autoencoder = Transformer(
+    input_dim=1024, 
+    latent_dim=128, 
+    output_dim=1024,
+    embedding_dim=args.ae_embedding_dim,
+    num_layers=args.ae_num_layers,
+    num_heads=args.ae_num_heads
+    )
     
   checkpoints = torch.load(args.autoencoder_ckpts_path)
   autoencoder.load_state_dict(checkpoints['state_dict'])
@@ -83,7 +77,7 @@ def main():
 
   # Test in all available splits
   if args.test:
-    train_metrics, test_imputation_data, _ = inference_function(
+    train_metrics, test_imputation_data, _, _, _ = inference_function(
       data=spared_data,
       model=model,
       diffusion_steps=args.sample_diffusion_steps,
@@ -95,7 +89,7 @@ def main():
       )
     wandb.log({"test_MSE_Train": train_metrics["MSE"], "test_PCC_Train": train_metrics["PCC-Gene"]})
 
-    val_metrics, test_imputation_data, _ = inference_function(
+    val_metrics, test_imputation_data, _, _, _ = inference_function(
       data=spared_data,
       model=model,
       diffusion_steps=args.sample_diffusion_steps,
@@ -108,7 +102,7 @@ def main():
     wandb.log({"test_MSE_Val": val_metrics["MSE"], "test_PCC_Val": val_metrics["PCC-Gene"]})
 
     if spared_data.test_data_available:
-      test_metrics, test_imputation_data, _ = inference_function(
+      test_metrics, test_imputation_data, _, _, _ = inference_function(
         data=spared_data,
         model=model,
         diffusion_steps=args.sample_diffusion_steps,
@@ -121,7 +115,7 @@ def main():
       wandb.log({"test_MSE_Test": test_metrics["MSE"], "test_PCC_Test": test_metrics["PCC-Gene"]})
 
   if args.full_inference:
-      full_metrics, full_imputation_data, eval_mask = inference_function(
+      full_metrics, full_imputation_data, eval_mask, _, _ = inference_function(
         data=spared_data,
         model=model,
         diffusion_steps=args.sample_diffusion_steps,
