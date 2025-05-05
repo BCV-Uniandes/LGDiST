@@ -3,6 +3,7 @@ from sklearn.preprocessing import StandardScaler
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from metrics import get_metrics
+import anndata as ad
 import squidpy as sq
 import numpy as np
 import matplotlib
@@ -104,7 +105,7 @@ def decode(imputation, model_decoder, decode_as_matrix=False):
 
     return decoded_samples
 
-def inference_function(data, model, diffusion_steps, device, args, model_autoencoder, wandb_logger, process = "val"):
+def inference_function(data, model, diffusion_steps, device, args, model_autoencoder, process = "val"):
     # To avoid circular imports
     from model.scheduler import NoiseScheduler
     from model.sample import sample_stDiff
@@ -185,7 +186,7 @@ def inference_function(data, model, diffusion_steps, device, args, model_autoenc
     dit_gt = torch.tensor(ground_truth, dtype=torch.float32)[:,:,0]
     dit_mse = F.mse_loss(dit_gt, dit_imputation)
     print("mse del dit (encoded pred vs encoded gt): ", dit_mse.item()) # MSE de predicción vs gt pero antes de decodear 
-    wandb_logger.log({"encoded_pred_MSE": dit_mse})
+    #wandb_logger.log({"encoded_pred_MSE": dit_mse})
     
     #Decoded imputation data
     if args.decode_as_matrix:

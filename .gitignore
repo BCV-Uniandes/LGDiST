@@ -3,3 +3,4 @@ gene_completion/wandb
 gene_completion/results
 gene_completion/__pycache__
 gene_completion/model/__pycache__
+gene_completion/completion_layers_comparison_results/
