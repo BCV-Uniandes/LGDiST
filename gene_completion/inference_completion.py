@@ -137,17 +137,6 @@ def main():
         print(f"LDiST completion into layers c_{STEP}_log1p and c_{STEP}_deltas in adata from {preprocessed_dataset_path} done.")
         print('-----------------------------------------------------------------------------------------------------------------')
 
-        if STEP == "StepB":
-            original_genes = eval_mask.sum(dim=0)!=0
-            original_exp = torch.tensor(spared_data.original_full_adata.layers['c_t_log1p'])
-            predicted_exp = full_imputation_data[:,original_genes]
-            original_genes_mask = eval_mask[:,original_genes]
-            
-            assert torch.allclose(original_genes_mask, torch.tensor(spared_data.original_full_adata.layers['mask']))
-            
-            # Imput predicted gene expression only in missing data
-            imputed_exp = torch.where(eval_mask[:,original_genes], original_exp, predicted_exp)
-
     else:
         print(f'LDiST completion already done for layers c_{STEP}_log1p and c_{STEP}_deltas.')
         print('-----------------------------------------------------------------------------------------------------------------')
