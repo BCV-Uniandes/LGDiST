@@ -1,7 +1,9 @@
 from torch.utils.data import DataLoader, TensorDataset
+from sklearn.preprocessing import StandardScaler
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 from metrics import get_metrics
+import anndata as ad
 import squidpy as sq
 import numpy as np
 import matplotlib
@@ -103,7 +105,7 @@ def decode(imputation, model_decoder, decode_as_matrix=False):
 
     return decoded_samples
 
-def inference_function(data, model, diffusion_steps, device, args, model_autoencoder, wandb_logger, process = "val"):
+def inference_function(data, model, diffusion_steps, device, args, model_autoencoder, process = "val"):
     # To avoid circular imports
     from model.scheduler import NoiseScheduler
     from model.sample import sample_stDiff
@@ -184,7 +186,7 @@ def inference_function(data, model, diffusion_steps, device, args, model_autoenc
     dit_gt = torch.tensor(ground_truth, dtype=torch.float32)[:,:,0]
     dit_mse = F.mse_loss(dit_gt, dit_imputation)
     print("mse del dit (encoded pred vs encoded gt): ", dit_mse.item()) # MSE de predicción vs gt pero antes de decodear 
-    wandb_logger.log({"encoded_pred_MSE": dit_mse})
+    #wandb_logger.log({"encoded_pred_MSE": dit_mse})
     
     #Decoded imputation data
     if args.decode_as_matrix:
@@ -212,3 +214,39 @@ def inference_function(data, model, diffusion_steps, device, args, model_autoenc
     metrics_dict = get_metrics(c_t_log1p_data, imputation_tensor, mask_boolean) 
     
     return metrics_dict, imputation_tensor, mask_boolean
+
+def get_deltas(adata: ad.AnnData, from_layer: str, to_layer: str) -> ad.AnnData:
+    """
+    Compute the deviations from the mean expression of each gene in adata.layers[from_layer] and save them
+    in adata.layers[to_layer]. Also add the mean expression of each gene to adata.var[f'{from_layer}_avg_exp'].
+
+    Args:
+        adata (ad.AnnData): The AnnData object to update. Must have expression values in adata.layers[from_layer].
+        from_layer (str): The layer to take the data from.
+        to_layer (str): The layer to store the results of the transformation.
+
+    Returns:
+        ad.AnnData: The updated AnnData object with the deltas and mean expression.
+    """
+
+    # Get the expression matrix of both train and global data
+    glob_expression = adata.to_df(layer=from_layer)
+    train_expression = adata[adata.obs['split'] == 'train'].to_df(layer=from_layer)
+
+    # Define scaler
+    scaler = StandardScaler(with_mean=True, with_std=False)
+
+    # Fit the scaler to the train data
+    scaler = scaler.fit(train_expression)
+    
+    # Get the centered expression matrix of the global data
+    centered_expression = scaler.transform(glob_expression)
+
+    # Add the deltas to adata.layers[to_layer]	
+    adata.layers[to_layer] = centered_expression
+
+    # Add the mean expression to adata.var[f'{from_layer}_avg_exp']
+    adata.var[f'{from_layer}_avg_exp'] = scaler.mean_
+
+    # Return the updated AnnData object
+    return adata
