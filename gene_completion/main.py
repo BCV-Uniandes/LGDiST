@@ -1,12 +1,18 @@
-from autoencoder.Transformer_simple import Transformer
 from model.model_2D import DiT_stDiff
-from dataset import SpaREDData
 from train import train_stDiff
 from datetime import datetime
 from utils import *
 import torch
 import wandb
 import os
+import sys
+import pathlib
+
+ldist_path = pathlib.Path(__name__).resolve().parent
+sys.path.append(str(ldist_path))
+
+from autoencoder.Transformer_simple import Transformer
+from dataset import SpaREDData
 
 parser = get_main_parser()
 args = parser.parse_args()
@@ -37,16 +43,15 @@ def main():
         )
   else: 
     print("Using a Transformer-MLP autoencoder for gene preprocessing")
-    autoencoder = Transformer(
-      input_dim=1024, 
-      latent_dim=128, 
-      output_dim=1024,
-      embedding_dim=256,
-      num_layers=2,
-      num_heads=2,
-      lr=args.lr
-      )
-    
+    autoencoder = Transformer(input_dim=args.input_dim, 
+                        latent_dim=args.latent_dim, 
+                        output_dim=args.output_dim,
+                        embedding_dim=args.embedding_dim,
+                        feedforward_dim=args.embedding_dim*2,
+                        num_layers=args.num_layers_autoencoder,
+                        num_heads=args.num_heads_autoencoder,
+                        lr=args.lr)
+  
   checkpoints = torch.load(args.autoencoder_ckpts_path)
   autoencoder.load_state_dict(checkpoints['state_dict'])
   autoencoder = autoencoder.to(device)
@@ -55,7 +60,7 @@ def main():
 
   # Define the diffusion model
   model = DiT_stDiff(
-      input_size=[128, args.num_neighs+1],  # 128 because it is the gene-autoencoder's latent dimension
+      input_size=[args.latent_dim, args.num_neighs+1],  # 128 because it is the gene-autoencoder's latent dimension
       hidden_size=args.dit_hidden_size, 
       depth=args.dit_depth,
       num_heads=args.num_heads,

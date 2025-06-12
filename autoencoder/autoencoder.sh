@@ -1,0 +1,2 @@
+CUDA_VISIBLE_DEVICES=3 python train_autoencoder_no_neighbors.py --dataset 10xgenomic_mouse_brain_sagittal_posterior --embedding_dim 512 --lr 0.0001
+CUDA_VISIBLE_DEVICES=3 python train_autoencoder_no_neighbors.py --dataset mirzazadeh_mouse_bone --embedding_dim 512 --lr 0.00001

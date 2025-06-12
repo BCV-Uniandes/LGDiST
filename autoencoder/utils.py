@@ -25,7 +25,7 @@ def get_main_parser():
     # Dataset parameters #####################################################################################################################################################################
     parser.add_argument('--dataset',                type=str,         default='villacampa_lung_organoid',           help='Dataset to use.')
     parser.add_argument('--prediction_layer',       type=str,         default='c_d_deltas',                         help='The prediction layer from the dataset to use.')
-    parser.add_argument("--normalization_type",     type=str,         default="1-1",                                help='If the normalization is done in range [-1, 1] (-1-1) or is done in range [0, 1] (0-1) or is none')
+    parser.add_argument("--normalization_type",     type=str,         default="none",                                help='If the normalization is done in range [-1, 1] (-1-1) or is done in range [0, 1] (0-1) or is none')
     parser.add_argument("--normalize_encoder",      type=str,         default="none",                               help='If the normalization is done in range [-1, 1] (-1-1) or is done in range [0, 1] (0-1) or is none')
     # Train parameters #######################################################################################################################################################################
     parser.add_argument('--lr',                     type=float,       default=0.000001,                             help='lr to use')
@@ -162,6 +162,28 @@ def get_neigbors_dataset(adata, prediction_layer, num_hops, autoencoder_model, a
         #append split neighbors info into the complete list
         all_neighbors_info[split] = split_neighbors_info
         max_min_info[split] = [max_enc, min_enc]
+
+    return all_neighbors_info, max_min_info
+
+def get_no_neighbors_dataset(adata, prediction_layer):
+    """
+    This function recives the name of a dataset and pred_layer. Returns a list of len = number of spots, each position of the list is an array 
+    (n_neigbors + 1, n_genes) that has the information about the neigbors of the corresponding spot.
+    """
+    all_neighbors_info = {}
+    max_min_info = {}
+    #Dataset all info
+    dataset = adata
+    #get dataset splits
+    splits = dataset.obs["split"].unique().tolist()
+    #iterate over split adata
+    for split in splits:
+        split_neighbors_info = []
+        adata = dataset[dataset.obs["split"]==split]
+        expression_mtx = torch.tensor(adata.layers[prediction_layer]) 
+        #append split neighbors info into the complete list
+        all_neighbors_info[split] = expression_mtx.unsqueeze(1)
+        max_min_info[split] = [0, 0]
 
     return all_neighbors_info, max_min_info
     

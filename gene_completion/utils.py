@@ -17,7 +17,7 @@ def get_main_parser():
     parser = argparse.ArgumentParser(description='Code for expression prediction using contrastive learning implementation.')
     # Dataset parameters #####################################################################################################################################################################
     parser.add_argument('--dataset',                        type=str,               default='villacampa_lung_organoid',      help='Dataset to use.')
-    parser.add_argument('--pred_layer',                     type=str,               default='c_t_deltas',                    help='SpaRED prediction layer to use.')
+    parser.add_argument('--pred_layer',                     type=str,               default='c_d_deltas',                    help='SpaRED prediction layer to use.')
     parser.add_argument('--num_neighs',                     type=int,               default=6,                               help='Amount of neighbors considered to build spot neighborhoods. Must be the same as the ones used to train the autoencoder.')
     parser.add_argument('--normalize_input',                type=str2bool,          default=True,                            help='Whether or not to normalize the DiT input data (encoded matrix) between -1 and 1 when preparing dataloader.')
     parser.add_argument('--noise_fraction',                 type=float,             default=1,                               help='Fraction of missing values/noise within the gene-expression data. If 1, it is an extreme imputation context.')
@@ -34,6 +34,13 @@ def get_main_parser():
     parser.add_argument('--num_heads',                      type=int,               default=16,                              help='')
     parser.add_argument("--concat_dim",                     type=int,               default=0,                               help='Which dimension used to concat the condition.')
     parser.add_argument('--dit_ckpts_path',                 type=str,               default='',                              help='Path to trained checkpoints of DiT corresponding to the dataset used. Optional.')
+    # Autoencoder parameters #################################################################################################################################################################
+    parser.add_argument('--num_layers_autoencoder',             type=int,         default=4,                                    help='Number of layers in the autoencoder')
+    parser.add_argument('--num_heads_autoencoder',              type=int,         default=2,                                    help='Number of heads in the transformer encoder')
+    parser.add_argument("--embedding_dim",          type=int,         default=512,                                  help='Embedding dimensions in the eutoencoder')
+    parser.add_argument('--input_dim',              type=int,         default=1024,                                 help='Input dimension of the autoencoder')
+    parser.add_argument("--latent_dim",             type=int,         default=128,                                  help='Latent dimension in the autoencoder')
+    parser.add_argument("--output_dim",             type=int,         default=1024,                                 help='Ouput dimension of the autoencoder')
     # Train parameters #######################################################################################################################################################################
     parser.add_argument('--seed',                           type=int,               default=1202,                            help='Seed to control initialization')
     parser.add_argument('--train',                          type=str2bool,          default=True,                            help='Train model.')
@@ -43,7 +50,7 @@ def get_main_parser():
     parser.add_argument('--batch_size',                     type=int,               default=128,                             help='Batch size used to train the diffusion model.')
     parser.add_argument('--num_epochs',                     type=int,               default=1500,                            help='Number of training epochs.')
     parser.add_argument('--train_diffusion_steps',          type=int,               default=1500,                            help='Number of diffusion steps for training process.')
-    parser.add_argument('--sample_diffusion_steps',         type=int,               default=1500,                            help='Number of diffusion steps for val or test process.')
+    parser.add_argument('--sample_diffusion_steps',         type=int,               default=50,                            help='Number of diffusion steps for val or test process.')
     parser.add_argument('--step_size',                      type=float,             default=600,                             help='Step size to use in learning rate scheduler')
     parser.add_argument("--adjust_loss",                    type=str2bool,          default=True,                            help='If True the loss is obtained only on masked data. If False the loss takes into account the entire set of genes and spots.')
     parser.add_argument("--scheduler",                      type=str2bool,          default=True,                            help='Whether to use LR scheduler or not.')

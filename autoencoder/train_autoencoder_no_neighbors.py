@@ -58,7 +58,9 @@ def main():
 
     # Get neighbor data
     list_nn, max_min_enc = get_neigbors_dataset(adata, args.prediction_layer, args.num_hops, model_autoencoder, args)
-    data = copy.deepcopy(list_nn)
+    list_no_nn, _ = get_no_neighbors_dataset(adata, args.prediction_layer)
+
+    data = copy.deepcopy(list_no_nn)
 
     splits = adata.obs["split"].unique().tolist()
     train_data = data["train"]
@@ -70,7 +72,7 @@ def main():
         test_data = data["test"]
         test_tensor = torch.stack([torch.tensor(arr) for arr in test_data])
 
-        mask_extreme = np.zeros((test_tensor.shape[0], 1024, 7))
+        mask_extreme = np.zeros((test_tensor.shape[0], 1024, 1))
         #mask 1024
         mask_extreme_completion_test = get_mask_extreme_completion(adata[adata.obs["split"]=="test"], mask_extreme, genes_evaluate)
         mask_extreme_completion_test = torch.tensor(mask_extreme_completion_test).permute(0,2,1)
@@ -79,14 +81,14 @@ def main():
         test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
 
     train_tensor = torch.stack([torch.tensor(arr) for arr in train_data])  
-    mask_extreme = np.zeros((train_tensor.shape[0], 1024, 7))
+    mask_extreme = np.zeros((train_tensor.shape[0], 1024, 1))
 
     ## TRAIN
     mask_extreme_completion_train = get_mask_extreme_completion(adata[adata.obs["split"]=="train"], mask_extreme, genes_evaluate)
     mask_extreme_completion_train = torch.tensor(mask_extreme_completion_train).permute(0,2,1)
 
     val_tensor = torch.stack([torch.tensor(arr) for arr in val_data])
-    mask_extreme = np.zeros((val_tensor.shape[0], 1024, 7))
+    mask_extreme = np.zeros((val_tensor.shape[0], 1024, 1))
 
     ## VALID
     mask_extreme_completion_val = get_mask_extreme_completion(adata[adata.obs["split"]=="val"], mask_extreme, genes_evaluate)
@@ -178,10 +180,10 @@ def main():
     wandb.log({"mse":mse})
 
     # Save model
-    if not os.path.exists(os.path.join("/media/SSD4/dvegaa/autoencoder/c_d_deltas", f"{args.dataset}", exp_name)):
-        os.makedirs(os.path.join("/media/SSD4/dvegaa/autoencoder/c_d_deltas", f"{args.dataset}", exp_name))
+    if not os.path.exists(os.path.join("/media/SSD4/dvegaa/autoencoder/no_neighbors/c_d_deltas", f"{args.dataset}", exp_name)):
+        os.makedirs(os.path.join("/media/SSD4/dvegaa/autoencoder/no_neighbors/c_d_deltas", f"{args.dataset}", exp_name))
 
-    trainer.save_checkpoint(os.path.join("/media/SSD4/dvegaa/autoencoder/c_d_deltas", f"{args.dataset}", exp_name, "autoencoder_model.ckpt"))
+    trainer.save_checkpoint(os.path.join("/media/SSD4/dvegaa/autoencoder/no_neighbors/c_d_deltas", f"{args.dataset}", exp_name, "autoencoder_model.ckpt"))
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,2 @@
+CUDA_VISIBLE_DEVICES=4 python train_autoencoder_no_neighbors.py --dataset abalo_human_squamous_cell_carcinoma --embedding_dim 512 --lr 0.00001
+CUDA_VISIBLE_DEVICES=4 python train_autoencoder_no_neighbors.py --dataset villacampa_mouse_brain --embedding_dim 512 --lr 0.00001
