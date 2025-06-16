@@ -35,9 +35,9 @@ def main():
     wandb.log({"args": vars(args),
                "feedforward_dim": feedforward_dim})
 
-    adata_128 = ad.read_h5ad(f"/media/SSD0/pcardenasg2/c_dif_layers/datasets/original/{args.dataset}.h5ad")
-    adata = ad.read_h5ad(f"/media/SSD0/pcardenasg2/c_dif_layers/datasets/original/{args.dataset}.h5ad")
-    #adata = ad.read_h5ad(f"/media/SSD4/dlmanrique/Spatial_Transcriptomics/datasets/adatas_1024/{args.dataset}_1024.h5ad")
+    adata_128 = ad.read_h5ad(f"/media/disk0/pcardenasg/SpaRED/datasets/original/{args.dataset}.h5ad")
+    adata = ad.read_h5ad(f"/media/disk0/pcardenasg/SpaRED/datasets/original/{args.dataset}.h5ad")
+    #adata = ad.read_h5ad(f"/media/disk0/pcardenasg/SpaRED/datasets/1024/{args.dataset}_1024.h5ad")
 
     # Sort adatas 
     adata, adata_128 = sort_adatas(adata=adata, adata_128=adata_128)
@@ -178,10 +178,10 @@ def main():
     wandb.log({"mse":mse})
 
     # Save model
-    if not os.path.exists(os.path.join("/media/SSD4/dvegaa/autoencoder/no_context/c_d_deltas", f"{args.dataset}", exp_name)):
-        os.makedirs(os.path.join("/media/SSD4/dvegaa/autoencoder/no_context/c_d_deltas", f"{args.dataset}", exp_name))
+    if not os.path.exists(os.path.join("/media/disk3/dvegaa/autoencoder/no_context/c_d_deltas", f"{args.dataset}", exp_name)):
+        os.makedirs(os.path.join("/media/disk3/dvegaa/autoencoder/no_context/c_d_deltas", f"{args.dataset}", exp_name))
 
-    trainer.save_checkpoint(os.path.join("/media/SSD4/dvegaa/autoencoder/no_context/c_d_deltas", f"{args.dataset}", exp_name, "autoencoder_model.ckpt"))
+    trainer.save_checkpoint(os.path.join("/media/disk3/dvegaa/autoencoder/no_context/c_d_deltas", f"{args.dataset}", exp_name, "autoencoder_model.ckpt"))
 
 if __name__ == "__main__":
     main()

@@ -1,2 +1,0 @@
-CUDA_VISIBLE_DEVICES=5 python train_autoencoder_no_neighbors.py --dataset villacampa_lung_organoid --embedding_dim 512 --lr 0.0001
-CUDA_VISIBLE_DEVICES=5 python train_autoencoder_no_neighbors.py --dataset vicari_human_striatium --embedding_dim 512 --lr 0.00001
