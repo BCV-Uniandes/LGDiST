@@ -33,14 +33,14 @@ def main():
   # Load trained autoencoder
   print("Using a Transformer-MLP autoencoder for gene preprocessing")
   autoencoder = Transformer(
-    input_dim=1024, 
-    latent_dim=128, 
-    output_dim=1024,
+    input_dim=args.ae_input_dim, 
+    latent_dim=args.ae_latent_dim, 
+    output_dim=args.ae_output_dim,
     embedding_dim=args.ae_embedding_dim,
     num_layers=args.ae_num_layers,
     num_heads=args.ae_num_heads
     )
-    
+
   checkpoints = torch.load(args.autoencoder_ckpts_path)
   autoencoder.load_state_dict(checkpoints['state_dict'])
   autoencoder = autoencoder.to(device)
@@ -49,7 +49,7 @@ def main():
 
   # Define the diffusion model
   model = DiT_stDiff(
-      input_size=[128, args.num_neighs+1],  # 128 because it is the gene-autoencoder's latent dimension
+      input_size=[args.ae_latent_dim, args.num_neighs+1],  # 128 because it is the gene-autoencoder's latent dimension
       hidden_size=args.dit_hidden_size, 
       depth=args.dit_depth,
       num_heads=args.num_heads,
