@@ -316,7 +316,6 @@ if __name__ == "__main__":
     autoencoder.load_state_dict(checkpoints['state_dict'])
     autoencoder = autoencoder.to(device)
 
-    breakpoint()
     spared_data = SpaREDData(args, autoencoder)
     AA = next(iter(spared_data.train_dataloader()))
     print("finish")

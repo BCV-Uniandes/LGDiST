@@ -40,7 +40,7 @@ def main():
     num_layers=args.ae_num_layers,
     num_heads=args.ae_num_heads
     )
-    
+
   checkpoints = torch.load(args.autoencoder_ckpts_path)
   autoencoder.load_state_dict(checkpoints['state_dict'])
   autoencoder = autoencoder.to(device)

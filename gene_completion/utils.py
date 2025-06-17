@@ -35,6 +35,9 @@ def get_main_parser():
     parser.add_argument("--concat_dim",                     type=int,               default=0,                               help='Which dimension used to concat the condition.')
     parser.add_argument('--dit_ckpts_path',                 type=str,               default='',                              help='Path to trained checkpoints of DiT corresponding to the dataset used. Optional.')
     # AutoEncoder parameters #######################################################################################################################################################################
+    parser.add_argument('--ae_input_dim',              type=int,         default=1024,                                 help='Input dimension of the autoencoder')
+    parser.add_argument("--ae_latent_dim",             type=int,         default=128,                                  help='Latent dimension in the autoencoder')
+    parser.add_argument("--ae_output_dim",             type=int,         default=1024,                                 help='Ouput dimension of the autoencoder')
     parser.add_argument('--ae_embedding_dim',               type=int,               default=512,                             help='')
     parser.add_argument('--ae_num_heads',                   type=int,               default=1,                               help='')
     parser.add_argument('--ae_num_layers',                  type=int,               default=4,                               help='')

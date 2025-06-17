@@ -37,8 +37,8 @@ def main():
     wandb_logger = WandbLogger(log_model="best")
     wandb.log({"feedforward_dim": feedforward_dim})
 
-    adata_128 = ad.read_h5ad(f"../datasets/original/{args.dataset}.h5ad")
-    adata = ad.read_h5ad(f"../datasets/1024/{args.dataset}_1024.h5ad")
+    adata_128 = ad.read_h5ad(f"/media/SSD0/pcardenasg2/c_dif_layers/datasets/original/{args.dataset}.h5ad")
+    adata = ad.read_h5ad(f"/media/SSD0/pcardenasg2/c_dif_layers/datasets/1024/{args.dataset}_1024.h5ad")
 
     # Sort adatas 
     adata, adata_128 = sort_adatas(adata=adata, adata_128=adata_128)

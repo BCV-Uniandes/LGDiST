@@ -7,4 +7,8 @@ autoencoder/wandb
 autoencoder/__pycache__
 wandb
 autoencoder/results
+<<<<<<< HEAD
 results
+=======
+results/
+>>>>>>> 89af05dd5edaa2bde1e3d08119dcbd6ed5b71cd2
