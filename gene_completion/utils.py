@@ -38,6 +38,9 @@ def get_main_parser():
     parser.add_argument('--ae_embedding_dim',               type=int,               default=512,                             help='')
     parser.add_argument('--ae_num_heads',                   type=int,               default=1,                               help='')
     parser.add_argument('--ae_num_layers',                  type=int,               default=4,                               help='')
+    parser.add_argument('--ae_input_dim',              type=int,         default=1024,                                 help='Input dimension of the autoencoder')
+    parser.add_argument("--ae_latent_dim",             type=int,         default=128,                                  help='Latent dimension in the autoencoder')
+    parser.add_argument("--ae_output_dim",             type=int,         default=1024,                                 help='Ouput dimension of the autoencoder')
     # Train parameters #######################################################################################################################################################################
     parser.add_argument('--seed',                           type=int,               default=1202,                            help='Seed to control initialization')
     parser.add_argument('--train',                          type=str2bool,          default=True,                            help='Train model.')
