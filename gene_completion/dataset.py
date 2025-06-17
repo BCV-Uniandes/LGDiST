@@ -224,8 +224,8 @@ class SpaREDData():
             self.all_data = stLDMDataset(self.args, self.full_adata, "all", self.spared_genes_array, self.autoencoder)
 
     def load_data(self):
-        self.adata_path = f"/media/disk0/pcardenasg/SpaRED/datasets/1024/{self.dataset_name}_1024.h5ad"
-        #self.adata_path = f"/media/disk0/pcardenasg/SpaRED/datasets/original/{self.dataset_name}.h5ad"
+        self.adata_path = f"../datasets/1024/{self.dataset_name}_1024.h5ad"
+        #self.adata_path = f"../datasets/original/{self.dataset_name}.h5ad"
         self.full_adata = ad.read_h5ad(self.adata_path)
         # Check if test split is available
         self.test_data_available = True if 'test' in self.full_adata.obs['split'].unique() else False
@@ -233,7 +233,7 @@ class SpaREDData():
         self.n_genes = self.full_adata.n_vars
 
         # Load original SpaRED adata 
-        self.original_adata_path = f"/media/disk0/pcardenasg/SpaRED/datasets/original/{self.dataset_name}.h5ad"
+        self.original_adata_path = f"../datasets/original/{self.dataset_name}.h5ad"
         self.original_full_adata = ad.read_h5ad(self.original_adata_path)
         
         # Get array of genes of interest
