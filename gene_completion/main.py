@@ -1,7 +1,7 @@
 from Transformer_simple import Transformer
 from model.model_2D import DiT_stDiff
 from dataset import SpaREDData
-from train import train_stDiff
+from train import train_model
 from datetime import datetime
 from utils import *
 import torch
@@ -18,9 +18,10 @@ seed_everything(seed)
 
 def main():
 
+  # Adjust entity to personal WandB account
   wandb.init(
-    project='stLDM', 
-    entity = 'spared_v2',
+    project='LGDiST', 
+    #entity = '',
     config=vars(args), 
     name=exp_name
     )
@@ -41,15 +42,17 @@ def main():
     num_heads=args.ae_num_heads
     )
 
+  # Load checkpoints of autoencoder for neighborhood gene expression 
   checkpoints = torch.load(args.autoencoder_ckpts_path)
   autoencoder.load_state_dict(checkpoints['state_dict'])
   autoencoder = autoencoder.to(device)
 
+  # Create dataset object
   spared_data = SpaREDData(args, autoencoder)  
 
   # Define the diffusion model
   model = DiT_stDiff(
-      input_size=[args.ae_latent_dim, args.num_neighs+1],  # 128 because it is the gene-autoencoder's latent dimension
+      input_size=[args.ae_latent_dim, args.num_neighs+1],  
       hidden_size=args.dit_hidden_size, 
       depth=args.dit_depth,
       num_heads=args.num_heads,
@@ -58,7 +61,7 @@ def main():
       mlp_ratio=4.0).to(device)
 
   if args.train:
-    best_model_path = train_stDiff(
+    best_model_path = train_model(
       model,
       data=spared_data,
       wandb_logger=wandb,
@@ -129,6 +132,7 @@ def main():
 
 if __name__ == "__main__":
 
+  # Set unique name for current run
   exp_name = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
   print(args)
   use_cuda = torch.cuda.is_available()
