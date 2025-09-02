@@ -53,26 +53,26 @@ cd LGDiST/gene_completion
 python main.py --autoencoder_ckpts_path $ae_checkpoints_path$ --dataset $dataset_name$ --pred_layer $prediction_layer$
 ```
 
-Here, $ae_checkpoints_path$ must be the path to the .ckpt file saved during the autoencoder training step and $prediction_layer$ corresponds to the layer within the adata object that contains the ground truth of the data. To replicate the results in the paper, you have to run this command with `c_d_deltas` as the prediction layer, since this layer contains the data that was pre-completed with the median completion strategy.
+Here, `$ae_checkpoints_path$` must be the path to the .ckpt file saved during the autoencoder training step and `$prediction_layer$` corresponds to the layer within the adata object that contains the ground truth of the data. To replicate the results in the paper, you have to run this command with `c_d_deltas` as the prediction layer, since this layer contains the data that was pre-completed with the median completion strategy.
 
 As a result, the script will save the checkpoints of the data completion model inside the `LGDiST/gene_completion/results/$prediction_layer$/$dataset_name$` directory. 
 
 ## Data completion inference
 
 To use the trained diffusion model for completing real-missing data in the Spatial Transcriptomics dataset you need to run this command:
-```
+```bash
 cd LGDiST/gene_completion
 python inference_completion.py --autoencoder_ckpts_path $ae_checkpoints_path$ --dataset $dataset_name$ --pred_layer $prediction_layer$ --dit_ckpts_path $dit_checkpoints_path$
 ```
-Similar to the diffusion training phase, $ae_checkpoints_path$ is the path to the .ckpt file that corresponds to the trained autoencoder and $prediction_layer$ corresponds to the layer used to train the diffusion model and the one where the pre-completed or missing values will be replaced by LGDiST.
+Similar to the diffusion training phase, `$ae_checkpoints_path$` is the path to the .ckpt file that corresponds to the trained autoencoder and `$prediction_layer$` corresponds to the layer used to train the diffusion model and the one where the pre-completed or missing values will be replaced by LGDiST.
 
 For best results, we encourage running the diffusion training step along with the inference step twice. This allows LGDiST to improve its final completion prediction once it is trained in the second stage using the data pre-completed with its own initial predictions. In this sense, the suggested protocol is:
 
 1. AutoEncoder training.
-2. DiT training using the *median pre-completed* data (`c_d_deltas`) as $prediction_layer$.
-3. Completing real-missing data with LGDiST inference script (use the same $prediction_layer$ from step 2).
-4. DiT training using the *LGDiST pre-completed* data (automatically saved as `c_StepA_deltas` in step 3) as $prediction_layer$.
-5. Completing real-missing data with LGDiST inference script (use the same $prediction_layer$ from step 4).
+2. DiT training using the *median pre-completed* data (`c_d_deltas`) as `$prediction_layer$`.
+3. Completing real-missing data with LGDiST inference script (use the same `$prediction_layer$` from step 2).
+4. DiT training using the *LGDiST pre-completed* data (automatically saved as `c_StepA_deltas` in step 3) as `$prediction_layer$`.
+5. Completing real-missing data with LGDiST inference script (use the same `$prediction_layer$` from step 4).
 
 The final completion results are automatically saved in layer `c_StepB_deltas` during step 5.
 
