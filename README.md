@@ -30,7 +30,7 @@ pip install wget
 
 The datasets from SpaRED are available in [the official database webpage](https://bcv-uniandes.github.io/spared_webpage/).
 
-All the instructions regarding data pre-processing can be found [here](datasets/README.md)
+All the instructions regarding data pre-processing can be found [here](datasets)
 
 
 ## Autoencoder
